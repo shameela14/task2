@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>infraSight — See Everything. Fix It Faster.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #07090f;
+      --surface:  #0d1117;
+      --panel:    #111827;
+      --border:   rgba(255,255,255,.07);
+      --accent:   #00e5ff;
+      --accent2:  #7c3aed;
+      --green:    #22c55e;
+      --red:      #ef4444;
+      --yellow:   #f59e0b;
+      --txt:      #f0f4f8;
+      --muted:    #64748b;
+      --mono:     'Space Mono', monospace;
+      --display:  'Syne', sans-serif;
+      --body:     'Inter', sans-serif;
+      --max:      1200px;
+      --gap:      clamp(1.2rem, 4vw, 2.8rem);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--body);
+      background: var(--bg);
+      color: var(--txt);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glow orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 500px; height: 500px; background: rgba(0,229,255,.07); top: -150px; right: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: rgba(124,58,237,.06); bottom: 10%; left: -120px; }
+
+    section, header, footer, .logos-strip, .cta-band { position: relative; z-index: 1; }
+
+    /* ── Utility ── */
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 var(--gap); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: .45rem;
+      font-family: var(--mono);
+      font-size: .68rem;
+      color: var(--accent);
+      background: rgba(0,229,255,.08);
+      border: 1px solid rgba(0,229,255,.2);
+      padding: .35em 1em;
+      border-radius: 100px;
+      letter-spacing: .06em;
+      margin-bottom: 1.4rem;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: .65rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: var(--display);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--txt);
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,9,15,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    nav {
+      max-width: var(--max); margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem var(--gap);
+    }
+    .logo {
+      font-family: var(--display);
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--txt);
+      text-decoration: none;
+      letter-spacing: -.03em;
+    }
+    .logo span { color: var(--accent); }
+
+    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-size: .88rem; font-weight: 500;
+      color: var(--muted); text-decoration: none;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--txt); }
+
+    .nav-cta {
+      background: var(--accent) !important;
+      color: var(--bg) !important;
+      padding: .5em 1.3em;
+      border-radius: 6px;
+      font-weight: 700 !important;
+      font-size: .84rem !important;
+      transition: opacity .2s, transform .15s !important;
+      letter-spacing: .02em;
+    }
+    .nav-cta:hover { opacity: .88 !important; transform: translateY(-1px); }
+
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--txt); border-radius: 2px; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 94vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 4rem;
+      max-width: var(--max); margin: 0 auto;
+      padding: 5rem var(--gap) 4rem;
+    }
+
+    .hero-copy { animation: fadeUp .8s ease both; }
+
+    .hero-title {
+      font-family: var(--display);
+      font-size: clamp(2.8rem, 5.5vw, 5rem);
+      font-weight: 900;
+      line-height: 1.0;
+      margin-bottom: 1.5rem;
+      letter-spacing: -.03em;
+    }
+    .hero-title .line-accent { color: var(--accent); display: block; }
+
+    .hero-sub {
+      font-size: 1.05rem; font-weight: 300;
+      color: var(--muted); max-width: 420px;
+      margin-bottom: 2.5rem; line-height: 1.8;
+    }
+    .hero-sub strong { color: var(--txt); font-weight: 500; }
+
+    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      padding: .85em 1.9em;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: .95rem;
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 0 24px rgba(0,229,255,.25);
+    }
+    .btn-primary:hover { opacity: .9; transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,229,255,.4); }
+
+    .btn-ghost {
+      color: var(--txt);
+      padding: .85em 1.9em;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: .95rem;
+      border: 1px solid var(--border);
+      transition: border-color .2s, background .2s;
+    }
+    .btn-ghost:hover { border-color: var(--accent); background: rgba(0,229,255,.05); }
+
+    .hero-meta {
+      display: flex; gap: 2rem; flex-wrap: wrap;
+    }
+    .meta-item { display: flex; flex-direction: column; }
+    .meta-num {
+      font-family: var(--display);
+      font-size: 1.6rem; font-weight: 900;
+      color: var(--accent);
+    }
+    .meta-lbl { font-size: .75rem; color: var(--muted); font-weight: 400; }
+
+    /* ── Terminal / Dashboard Mock ── */
+    .hero-visual { animation: fadeUp .8s .2s ease both; }
+
+    .monitor-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(0,229,255,.06), 0 0 80px rgba(0,229,255,.04);
+    }
+
+    .monitor-topbar {
+      background: var(--panel);
+      padding: .7rem 1rem;
+      display: flex; align-items: center; gap: .6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .m-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .m-dot:nth-child(1) { background: #ff5f57; }
+    .m-dot:nth-child(2) { background: #ffbd2e; }
+    .m-dot:nth-child(3) { background: #28ca42; }
+    .m-url {
+      flex: 1; text-align: center;
+      font-family: var(--mono); font-size: .65rem; color: var(--muted);
+    }
+    .m-status { font-family: var(--mono); font-size: .6rem; color: var(--green); background: rgba(34,197,94,.1); padding: .2em .7em; border-radius: 20px; }
+
+    .monitor-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+
+    /* Status row */
+    .status-row {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem;
+    }
+    .status-chip {
+      background: var(--panel);
+      border-radius: 8px; padding: .75rem .6rem;
+      text-align: center; border: 1px solid var(--border);
+    }
+    .chip-val {
+      font-family: var(--display); font-size: 1.2rem; font-weight: 900;
+      line-height: 1;
+    }
+    .chip-val.green { color: var(--green); }
+    .chip-val.red   { color: var(--red); }
+    .chip-val.yellow{ color: var(--yellow); }
+    .chip-val.cyan  { color: var(--accent); }
+    .chip-lbl { font-size: .6rem; color: var(--muted); font-weight: 500; margin-top: .3rem; letter-spacing: .05em; }
+
+    /* Sparkline area */
+    .spark-panel {
+      background: var(--panel); border-radius: 8px; padding: 1rem;
+      border: 1px solid var(--border);
+    }
+    .spark-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
+    .spark-title { font-family: var(--mono); font-size: .65rem; color: var(--muted); letter-spacing: .08em; }
+    .spark-live { font-family: var(--mono); font-size: .6rem; color: var(--green); display: flex; align-items: center; gap: .3rem; }
+    .spark-live::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
+
+    .sparkline { width: 100%; height: 52px; }
+
+    /* Alert log */
+    .alert-log { display: flex; flex-direction: column; gap: .4rem; }
+    .alert-row {
+      display: flex; align-items: center; gap: .7rem;
+      background: var(--panel); border-radius: 6px; padding: .55rem .75rem;
+      border: 1px solid var(--border);
+    }
+    .alert-icon { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .alert-icon.ok     { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .alert-icon.warn   { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .alert-icon.crit   { background: var(--red); box-shadow: 0 0 6px var(--red); animation: pulse 1s infinite; }
+    .alert-txt { font-family: var(--mono); font-size: .63rem; color: var(--muted); flex: 1; }
+    .alert-txt b { color: var(--txt); font-weight: 400; }
+    .alert-time { font-family: var(--mono); font-size: .58rem; color: rgba(100,116,139,.5); }
+
+    /* ── LOGOS ── */
+    .logos-strip {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 2.2rem var(--gap);
+      background: rgba(13,17,23,.6);
+    }
+    .logos-inner { max-width: var(--max); margin: 0 auto; }
+    .logos-label { font-family: var(--mono); font-size: .62rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); text-align: center; margin-bottom: 1.4rem; }
+    .logos-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 3rem; }
+    .logo-item { font-family: var(--display); font-size: .95rem; font-weight: 900; color: rgba(240,244,248,.15); letter-spacing: -.02em; }
+
+    /* ── FEATURES ── */
+    .features { padding: 7rem var(--gap); }
+    .features-inner { max-width: var(--max); margin: 0 auto; }
+    .features-head { text-align: center; max-width: 600px; margin: 0 auto 4rem; }
+    .features-head .section-title { margin-bottom: .8rem; }
+    .features-head p { color: var(--muted); font-size: 1rem; line-height: 1.8; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .feat-card {
+      background: var(--surface);
+      padding: 2.2rem 1.8rem;
+      transition: background .2s;
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+    }
+    .feat-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(0,229,255,.04) 0%, transparent 60%);
+      opacity: 0; transition: opacity .3s;
+    }
+    .feat-card:hover { background: #0f1520; }
+    .feat-card:hover::after { opacity: 1; }
+
+    .feat-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 1.3rem;
+    }
+    .ic1 { background: rgba(0,229,255,.1); }
+    .ic2 { background: rgba(34,197,94,.1); }
+    .ic3 { background: rgba(239,68,68,.1); }
+    .ic4 { background: rgba(124,58,237,.1); }
+    .ic5 { background: rgba(245,158,11,.1); }
+    .ic6 { background: rgba(0,229,255,.1); }
+
+    .feat-name {
+      font-family: var(--display);
+      font-size: 1.1rem; font-weight: 800;
+      margin-bottom: .5rem; color: var(--txt);
+    }
+    .feat-desc { font-size: .88rem; color: var(--muted); line-height: 1.75; }
+
+    .feat-new {
+      position: absolute; top: 1.1rem; right: 1.1rem;
+      background: rgba(0,229,255,.1); color: var(--accent);
+      font-family: var(--mono); font-size: .58rem;
+      padding: .2em .65em; border-radius: 20px; letter-spacing: .08em;
+    }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials { padding: 7rem var(--gap); background: rgba(13,17,23,.6); }
+    .testimonials-inner { max-width: var(--max); margin: 0 auto; }
+    .testi-head { text-align: center; margin-bottom: 3.5rem; }
+    .testi-head .section-title { margin-top: .5rem; margin-bottom: .8rem; }
+    .testi-sub { color: var(--muted); font-size: .95rem; }
+
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+    }
+
+    .testi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.8rem;
+      display: flex; flex-direction: column; gap: 1.2rem;
+      transition: border-color .25s, transform .2s;
+    }
+    .testi-card:hover { border-color: rgba(0,229,255,.2); transform: translateY(-3px); }
+
+    .testi-card.hero-card {
+      background: linear-gradient(135deg, #0d1a2d 0%, #0a1220 100%);
+      border-color: rgba(0,229,255,.2);
+      box-shadow: 0 0 40px rgba(0,229,255,.06);
+    }
+
+    .testi-stars { color: var(--accent); font-size: .8rem; letter-spacing: .12em; }
+    .testi-quote {
+      font-size: .95rem; line-height: 1.75; color: rgba(240,244,248,.75);
+      font-style: italic; flex: 1;
+    }
+    .testi-card.hero-card .testi-quote { color: var(--txt); }
+
+    .testi-author { display: flex; align-items: center; gap: .85rem; }
+    .testi-av {
+      width: 40px; height: 40px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: .8rem; font-weight: 700; flex-shrink: 0;
+    }
+    .av1 { background: rgba(0,229,255,.12); color: var(--accent); }
+    .av2 { background: rgba(124,58,237,.15); color: #a78bfa; }
+    .av3 { background: rgba(34,197,94,.12); color: var(--green); }
+    .av4 { background: rgba(245,158,11,.12); color: var(--yellow); }
+    .testi-name { font-weight: 600; font-size: .88rem; }
+    .testi-role { font-size: .75rem; color: var(--muted); font-family: var(--mono); }
+
+    /* ── CTA BAND ── */
+    .cta-band {
+      padding: 6rem var(--gap);
+      text-align: center;
+      background: linear-gradient(180deg, rgba(0,229,255,.04) 0%, rgba(7,9,15,0) 100%);
+      border-top: 1px solid var(--border);
+    }
+    .cta-band h2 {
+      font-family: var(--display);
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 900; margin-bottom: 1rem;
+      letter-spacing: -.03em;
+    }
+    .cta-band h2 span { color: var(--accent); }
+    .cta-band p { color: var(--muted); font-size: 1rem; margin-bottom: 2.2rem; }
+    .cta-band .btn-primary { font-size: 1rem; padding: 1em 2.5em; }
+
+    .cta-trust {
+      margin-top: 1.5rem;
+      font-family: var(--mono); font-size: .68rem; color: var(--muted);
+      display: flex; align-items: center; justify-content: center; gap: 1.5rem; flex-wrap: wrap;
+    }
+    .cta-trust span { display: flex; align-items: center; gap: .4rem; }
+    .cta-trust span::before { content: '✓'; color: var(--green); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 4rem var(--gap) 2rem;
+    }
+    .footer-inner { max-width: var(--max); margin: 0 auto; }
+    .footer-top {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; padding-bottom: 3rem;
+      border-bottom: 1px solid var(--border); margin-bottom: 2rem;
+    }
+    .footer-brand .logo { display: block; margin-bottom: .9rem; font-size: 1.25rem; }
+    .footer-brand p { font-size: .85rem; color: var(--muted); line-height: 1.75; max-width: 230px; }
+    .footer-brand .status-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      font-family: var(--mono); font-size: .62rem;
+      color: var(--green); background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.15);
+      padding: .3em .9em; border-radius: 100px; margin-top: 1rem;
+    }
+    .status-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+
+    .footer-col h4 {
+      font-family: var(--mono); font-size: .62rem;
+      letter-spacing: .16em; text-transform: uppercase;
+      color: rgba(240,244,248,.35); margin-bottom: 1.1rem;
+    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: .65rem; }
+    .footer-col a { font-size: .87rem; color: var(--muted); text-decoration: none; transition: color .2s; }
+    .footer-col a:hover { color: var(--txt); }
+
+    .footer-bottom {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-copy { font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+    .footer-socials { display: flex; gap: .8rem; }
+    .soc-link {
+      width: 32px; height: 32px; border-radius: 6px;
+      background: var(--panel); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; font-family: var(--mono); font-size: .72rem; color: var(--muted);
+      transition: border-color .2s, color .2s;
+    }
+    .soc-link:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .35; }
+    }
+    @keyframes drawLine {
+      from { stroke-dashoffset: 500; }
+      to   { stroke-dashoffset: 0; }
+    }
+
+    .sparkline path {
+      stroke-dasharray: 500;
+      animation: drawLine 2s ease forwards .4s;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .hero { grid-template-columns: 1fr; min-height: auto; padding: 3rem var(--gap); }
+      .hero-visual { order: -1; }
+      .hero-sub { max-width: 100%; }
+      .features-grid { grid-template-columns: 1fr; }
+      .testi-grid { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .footer-brand { grid-column: span 2; }
+      .status-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .footer-top { grid-template-columns: 1fr; }
+      .footer-brand { grid-column: span 1; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .hero-actions { flex-direction: column; }
+      .hero-meta { gap: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!-- ══ HEADER ═══════════════════════════════════════════ -->
+  <header>
+    <nav>
+      <a href="#" class="logo">infra<span>Sight</span></a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#testimonials">Customers</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">Docs</a></li>
+        <li><a href="#cta" class="nav-cta">Get Started</a></li>
+      </ul>
+      <button class="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ══ HERO ════════════════════════════════════════════ -->
+    <section>
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="badge"><span class="badge-dot"></span> Now in GA — 99.99% uptime SLA</div>
+          <h1 class="hero-title">
+            See Everything.<br>
+            <span class="line-accent">Fix It Faster.</span>
+          </h1>
+          <p class="hero-sub">
+            <strong>infraSight</strong> gives engineering teams a single pane of glass for infrastructure monitoring, alerting, and incident response — from bare metal to Kubernetes.
+          </p>
+          <div class="hero-actions">
+            <a href="#cta" class="btn-primary">Start Monitoring Free →</a>
+            <a href="#features" class="btn-ghost">Watch Demo</a>
+          </div>
+          <div class="hero-meta">
+            <div class="meta-item">
+              <span class="meta-num">&lt;30s</span>
+              <span class="meta-lbl">Mean alert latency</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-num">500+</span>
+              <span class="meta-lbl">Integrations</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-num">99.99%</span>
+              <span class="meta-lbl">Platform uptime</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="monitor-wrap">
+            <div class="monitor-topbar">
+              <div class="m-dot"></div><div class="m-dot"></div><div class="m-dot"></div>
+              <span class="m-url">app.infrasight.io — production</span>
+              <span class="m-status">● All systems operational</span>
+            </div>
+            <div class="monitor-body">
+              <div class="status-row">
+                <div class="status-chip">
+                  <div class="chip-val green">98.7%</div>
+                  <div class="chip-lbl">Uptime</div>
+                </div>
+                <div class="status-chip">
+                  <div class="chip-val cyan">142ms</div>
+                  <div class="chip-lbl">P95 Latency</div>
+                </div>
+                <div class="status-chip">
+                  <div class="chip-val yellow">2</div>
+                  <div class="chip-lbl">Warnings</div>
+                </div>
+                <div class="status-chip">
+                  <div class="chip-val red">1</div>
+                  <div class="chip-lbl">Critical</div>
+                </div>
+              </div>
+
+              <div class="spark-panel">
+                <div class="spark-header">
+                  <span class="spark-title">CPU UTILIZATION — PROD CLUSTER</span>
+                  <span class="spark-live">LIVE</span>
+                </div>
+                <svg class="sparkline" viewBox="0 0 360 52" preserveAspectRatio="none" fill="none">
+                  <defs>
+                    <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#00e5ff" stop-opacity=".2"/>
+                      <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,40 C20,38 30,35 50,30 S80,28 100,32 S130,38 150,25 S180,10 200,15 S230,28 250,20 S280,8 300,12 S330,22 360,18"
+                    fill="url(#grad)" stroke="none"/>
+                  <path d="M0,40 C20,38 30,35 50,30 S80,28 100,32 S130,38 150,25 S180,10 200,15 S230,28 250,20 S280,8 300,12 S330,22 360,18"
+                    stroke="#00e5ff" stroke-width="1.8" fill="none"/>
+                </svg>
+              </div>
+
+              <div class="alert-log">
+                <div class="alert-row">
+                  <div class="alert-icon crit"></div>
+                  <span class="alert-txt"><b>db-primary-02</b> — disk usage exceeded 90% threshold</span>
+                  <span class="alert-time">0m ago</span>
+                </div>
+                <div class="alert-row">
+                  <div class="alert-icon warn"></div>
+                  <span class="alert-txt"><b>api-gateway-us-east</b> — P99 latency spike detected</span>
+                  <span class="alert-time">4m ago</span>
+                </div>
+                <div class="alert-row">
+                  <div class="alert-icon ok"></div>
+                  <span class="alert-txt"><b>worker-pool-03</b> — auto-scaled to 12 nodes</span>
+                  <span class="alert-time">9m ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ LOGOS ═══════════════════════════════════════════ -->
+    <div class="logos-strip">
+      <div class="logos-inner">
+        <p class="logos-label">Trusted by engineering teams at</p>
+        <div class="logos-row">
+          <span class="logo-item">Axiom</span>
+          <span class="logo-item">Vercel</span>
+          <span class="logo-item">PlanetScale</span>
+          <span class="logo-item">Render</span>
+          <span class="logo-item">Turso</span>
+          <span class="logo-item">Neon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ FEATURES ════════════════════════════════════════ -->
+    <section class="features" id="features">
+      <div class="features-inner">
+        <div class="features-head">
+          <p class="section-label">// What We Do</p>
+          <h2 class="section-title">Built for engineers,<br>not dashboards.</h2>
+          <p>infraSight goes beyond pretty charts. It gives you the context, correlations, and automation you need to ship with confidence.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feat-card">
+            <div class="feat-icon ic1">📡</div>
+            <div class="feat-name">Universal Metrics</div>
+            <p class="feat-desc">Ingest metrics from any source — Prometheus, StatsD, CloudWatch, Datadog agents — with zero re-instrumentation.</p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon ic2">🔔</div>
+            <div class="feat-name">Smart Alerting</div>
+            <p class="feat-desc">ML-powered anomaly detection that learns your baselines and cuts alert fatigue by over 80%. No more 3am false positives.</p>
+          </div>
+          <div class="feat-card">
+            <span class="feat-new">NEW</span>
+            <div class="feat-icon ic3">🔥</div>
+            <div class="feat-name">Incident Intelligence</div>
+            <p class="feat-desc">Automated root-cause analysis surfaces the likely culprit in seconds. Link alerts, traces, and logs in a single timeline.</p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon ic4">🧩</div>
+            <div class="feat-name">500+ Integrations</div>
+            <p class="feat-desc">PagerDuty, Slack, Jira, GitHub Actions, OpsGenie, and hundreds more. infraSight plugs into your existing runbooks.</p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon ic5">⚙️</div>
+            <div class="feat-name">Infrastructure as Code</div>
+            <p class="feat-desc">Define monitors, dashboards, and SLOs in Terraform or YAML. Version-controlled observability from day one.</p>
+          </div>
+          <div class="feat-card">
+            <span class="feat-new">BETA</span>
+            <div class="feat-icon ic6">🛡️</div>
+            <div class="feat-name">SLO Tracking</div>
+            <p class="feat-desc">Set error budgets, track burn rates, and get proactive warnings before your SLO breaches hit your customers.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ TESTIMONIALS ════════════════════════════════════ -->
+    <section class="testimonials" id="testimonials">
+      <div class="testimonials-inner">
+        <div class="testi-head">
+          <p class="section-label">// From the Trenches</p>
+          <h2 class="section-title">Engineers who sleep better.</h2>
+          <p class="testi-sub">Real teams. Real incidents. Real relief.</p>
+        </div>
+
+        <div class="testi-grid">
+          <div class="testi-card">
+            <div class="testi-stars">★★★★★</div>
+            <p class="testi-quote">"We went from 200 noisy alerts per night to 8 actionable ones. Our on-call rotation stopped feeling like a punishment."</p>
+            <div class="testi-author">
+              <div class="testi-av av1">JL</div>
+              <div>
+                <div class="testi-name">James Liu</div>
+                <div class="testi-role">SRE Lead @ Axiom</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testi-card hero-card">
+            <div class="testi-stars">★★★★★</div>
+            <p class="testi-quote">"infraSight identified a cascading DB failure before any user reported it. The incident timeline alone saved us four hours of war-room chaos."</p>
+            <div class="testi-author">
+              <div class="testi-av av2">PR</div>
+              <div>
+                <div class="testi-name">Priya Rao</div>
+                <div class="testi-role">VP Engineering @ PlanetScale</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testi-card">
+            <div class="testi-stars">★★★★★</div>
+            <p class="testi-quote">"The Terraform provider is a game changer. Our monitors are code-reviewed and deployed in CI just like everything else."</p>
+            <div class="testi-author">
+              <div class="testi-av av3">TM</div>
+              <div>
+                <div class="testi-name">Tomás Méndez</div>
+                <div class="testi-role">Platform Eng @ Render</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testi-card" style="grid-column: 1 / -1; max-width: 560px;">
+            <div class="testi-stars">★★★★★</div>
+            <p class="testi-quote">"Setup took 20 minutes and we had dashboards for all 40 microservices. Other tools took us weeks to configure."</p>
+            <div class="testi-author">
+              <div class="testi-av av4">AK</div>
+              <div>
+                <div class="testi-name">Anika Kowalski</div>
+                <div class="testi-role">Staff Engineer @ Neon</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ CTA BAND ════════════════════════════════════════ -->
+    <section class="cta-band" id="cta">
+      <h2>Your infra is talking.<br><span>Are you listening?</span></h2>
+      <p>Connect your first host in under 5 minutes. No credit card needed.</p>
+      <a href="#" class="btn-primary">Start Free — No Card Required →</a>
+      <div class="cta-trust">
+        <span>14-day free trial</span>
+        <span>SOC 2 Type II</span>
+        <span>Cancel anytime</span>
+        <span>99.99% SLA</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- ══ FOOTER ══════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a href="#" class="logo">infra<span>Sight</span></a>
+          <p>Modern infrastructure monitoring for teams that can't afford blind spots.</p>
+          <div class="status-badge">All systems operational</div>
+        </div>
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#">Features</a></li>
+            <li><a href="#">Integrations</a></li>
+            <li><a href="#">Pricing</a></li>
+            <li><a href="#">Changelog</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Developers</h4>
+          <ul>
+            <li><a href="#">Docs</a></li>
+            <li><a href="#">API Reference</a></li>
+            <li><a href="#">Terraform</a></li>
+            <li><a href="#">Status Page</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Security</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-copy">© 2026 infraSight Inc. All rights reserved.</p>
+        <div class="footer-socials">
+          <a href="#" class="soc-link" aria-label="Twitter">X</a>
+          <a href="#" class="soc-link" aria-label="GitHub">gh</a>
+          <a href="#" class="soc-link" aria-label="LinkedIn">in</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Hamburger
+    const ham = document.querySelector('.hamburger');
+    const navLinks = document.querySelector('.nav-links');
+    let open = false;
+    ham.addEventListener('click', () => {
+      open = !open;
+      Object.assign(navLinks.style, open ? {
+        display: 'flex', flexDirection: 'column', position: 'absolute',
+        top: '60px', left: '0', right: '0', padding: '1.5rem 2rem',
+        background: 'rgba(7,9,15,.97)', borderBottom: '1px solid rgba(255,255,255,.07)',
+        backdropFilter: 'blur(16px)', gap: '1.3rem', zIndex: '99'
+      } : { display: 'none' });
+    });
+
+    // Scroll-reveal
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.animation = 'fadeUp .65s ease both';
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.feat-card, .testi-card').forEach(el => {
+      el.style.opacity = '0';
+      io.observe(el);
+    });
+  </script>
+</body>
+</html>
